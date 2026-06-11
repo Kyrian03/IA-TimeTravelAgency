@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TimeTravel Agency — Voyages Temporels de Luxe</title>
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e8e0d0; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1.2rem 2rem; display: flex; align-items: center; justify-content: space-between;
+      background: rgba(10,10,15,0.9); backdrop-filter: blur(12px);
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
+    }
+    .logo { font-size: 1rem; font-weight: 500; color: #f0e8d8; letter-spacing: 2px; text-decoration: none; }
+    .logo span { color: #d4a843; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a { color: #998880; font-size: 13px; text-decoration: none; cursor: pointer; transition: color 0.2s; }
+    .nav-links a:hover { color: #e8e0d0; }
+    .nav-toggle { display: none; background: none; border: none; color: #e8e0d0; font-size: 1.4rem; cursor: pointer; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      background: #0a0a0f;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 2rem; position: relative; overflow: hidden;
+    }
+    .hero-video {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+      opacity: 0; transition: opacity 1.2s ease;
+      pointer-events: none;
+    }
+    .hero-video.loaded { opacity: 0.45; }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      background:
+        linear-gradient(to bottom, rgba(10,10,15,0.55) 0%, rgba(10,10,15,0.2) 40%, rgba(10,10,15,0.7) 100%),
+        radial-gradient(ellipse at 50% 60%, rgba(120,80,200,0.2) 0%, transparent 65%);
+    }
+    #stars { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+    .star { position: absolute; width: 2px; height: 2px; background: white; border-radius: 50%; opacity: 0.3; animation: twinkle 3s infinite; }
+    @keyframes twinkle { 0%,100%{opacity:0.15} 50%{opacity:0.7} }
+    .hero-content { position: relative; z-index: 3; }
+    .hero-badge {
+      background: rgba(120,80,200,0.2); border: 0.5px solid rgba(120,80,200,0.5);
+      color: #b89aff; border-radius: 20px; padding: 6px 18px; font-size: 11px;
+      letter-spacing: 3px; text-transform: uppercase; margin-bottom: 1.5rem; display: inline-block;
+    }
+    .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 300; line-height: 1.1; color: #f0e8d8; margin-bottom: 1rem; letter-spacing: -1px; }
+    .hero h1 span { color: #d4a843; font-weight: 500; }
+    .hero p { font-size: 1.1rem; color: #998880; max-width: 480px; line-height: 1.7; margin: 0 auto 2.5rem; }
+    .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { background: #d4a843; color: #0a0a0f; border: none; padding: 14px 32px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 1.5px; text-transform: uppercase; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-ghost { background: transparent; color: #998880; border: 0.5px solid rgba(255,255,255,0.15); padding: 14px 32px; border-radius: 4px; font-size: 13px; cursor: pointer; transition: border-color 0.2s, color 0.2s; letter-spacing: 1px; }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.3); color: #e8e0d0; }
+
+    /* SECTIONS */
+    .section { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .section-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #d4a843; margin-bottom: 0.75rem; }
+    .section-title { font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 300; color: #f0e8d8; margin-bottom: 1rem; }
+    .section-sub { color: #998880; font-size: 1rem; line-height: 1.7; max-width: 520px; }
+
+    /* DESTINATIONS */
+    #destinations-bg { background: #0a0a0f; }
+    .destinations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+    .dest-card { background: #12101a; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.3s, border-color 0.3s; }
+    .dest-card:hover { transform: translateY(-6px); border-color: rgba(212,168,67,0.35); }
+    .dest-img { height: 220px; position: relative; overflow: hidden; }
+    .dest-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
+    .dest-card:hover .dest-img img { transform: scale(1.06); }
+    .dest-img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.45) 100%); }
+    .dest-img-icon { position: absolute; bottom: 14px; left: 16px; font-size: 2rem; z-index: 1; }
+    .dest-era { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: #d4a843; font-size: 11px; padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; }
+    .dest-body { padding: 1.25rem; }
+    .dest-body h3 { font-size: 1.1rem; font-weight: 500; color: #f0e8d8; margin-bottom: 0.5rem; }
+    .dest-body p { font-size: 13px; color: #998880; line-height: 1.6; margin-bottom: 1rem; }
+    .dest-price { font-size: 11px; color: #d4a843; letter-spacing: 1px; text-transform: uppercase; }
+    .dest-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .tag { background: rgba(212,168,67,0.1); color: #d4a843; font-size: 10px; padding: 3px 8px; border-radius: 3px; letter-spacing: 0.5px; }
+
+    /* QUIZ */
+    #quiz-bg { background: #0d0d14; border-top: 0.5px solid rgba(255,255,255,0.06); border-bottom: 0.5px solid rgba(255,255,255,0.06); }
+    .quiz-container { max-width: 640px; margin: 0 auto; }
+    .quiz-step { display: none; }
+    .quiz-step.active { display: block; }
+    .quiz-q { font-size: 1.2rem; color: #f0e8d8; margin-bottom: 2rem; font-weight: 300; }
+    .quiz-options { display: grid; gap: 0.75rem; }
+    .quiz-opt { background: #12101a; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 1rem 1.25rem; cursor: pointer; font-size: 14px; color: #998880; transition: all 0.2s; text-align: left; width: 100%; }
+    .quiz-opt:hover { border-color: rgba(212,168,67,0.4); color: #e8e0d0; background: #1a1828; }
+    .quiz-opt.selected { border-color: #d4a843; color: #d4a843; background: rgba(212,168,67,0.08); }
+    .quiz-progress { display: flex; gap: 6px; margin-bottom: 2rem; }
+    .quiz-dot { height: 3px; flex: 1; background: rgba(255,255,255,0.1); border-radius: 2px; transition: background 0.3s; }
+    .quiz-dot.done { background: #d4a843; }
+    .quiz-result { text-align: center; padding: 1rem 0; }
+    .quiz-result h3 { font-size: 1.5rem; color: #f0e8d8; margin-bottom: 0.75rem; }
+    .quiz-result p { color: #998880; margin-bottom: 1.5rem; line-height: 1.7; }
+    .dest-highlight { font-size: 3.5rem; margin-bottom: 1rem; }
+    .quiz-loading { text-align: center; padding: 2rem; color: #998880; }
+
+    /* CHATBOT */
+    .chatbot-btn:hover { transform: scale(1.08); }
+    .chat-window { position: fixed; bottom: 5.5rem; right: 2rem; z-index: 200; width: 360px; max-height: 520px; background: #12101a; border: 0.5px solid rgba(255,255,255,0.12); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+    .chat-header { padding: 1rem 1.25rem; border-bottom: 0.5px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+    .chat-avatar { width: 36px; height: 36px; background: rgba(212,168,67,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .chat-header-text h4 { font-size: 13px; font-weight: 500; color: #f0e8d8; }
+    .chat-header-text p { font-size: 11px; color: #4a8; }
+    .chat-close { margin-left: auto; background: none; border: none; color: #998880; cursor: pointer; font-size: 1.1rem; padding: 4px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .msg { max-width: 85%; font-size: 13px; line-height: 1.6; padding: 10px 14px; border-radius: 8px; }
+    .msg.bot { background: #1e1b2e; color: #c8c0b0; align-self: flex-start; border-bottom-left-radius: 2px; }
+    .msg.user { background: rgba(212,168,67,0.15); color: #e8d890; align-self: flex-end; border-bottom-right-radius: 2px; }
+    .msg.typing { color: #665; }
+    .chat-input-area { padding: 0.75rem; border-top: 0.5px solid rgba(255,255,255,0.08); display: flex; gap: 8px; }
+    .chat-input-area input { flex: 1; background: #0d0d14; border: 0.5px solid rgba(255,255,255,0.1); color: #e8e0d0; border-radius: 6px; padding: 8px 12px; font-size: 13px; outline: none; font-family: inherit; }
+    .chat-input-area input::placeholder { color: #443; }
+    .chat-input-area input:focus { border-color: rgba(212,168,67,0.4); }
+    .chat-send { background: #d4a843; border: none; color: #0a0a0f; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-size: 14px; font-weight: 600; }
+
+    /* RESERVATION */
+    #reservation-bg { background: #0a0a0f; border-top: 0.5px solid rgba(255,255,255,0.06); }
+    .reservation-form { max-width: 640px; margin: 3rem auto 0; display: grid; gap: 1.25rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #998880; }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: #12101a; border: 0.5px solid rgba(255,255,255,0.1); color: #e8e0d0;
+      border-radius: 6px; padding: 11px 14px; font-size: 14px; font-family: inherit; outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: rgba(212,168,67,0.5); }
+    .form-group select option { background: #12101a; }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+    .field-error { font-size: 11px; color: #e05a5a; margin-top: 2px; display: none; }
+    .form-group.has-error input,
+    .form-group.has-error select { border-color: #e05a5a; }
+    .form-group.has-error .field-error { display: block; }
+    .price-preview { background: rgba(212,168,67,0.08); border: 0.5px solid rgba(212,168,67,0.25); border-radius: 8px; padding: 1rem 1.25rem; display: none; }
+    .price-preview.visible { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .price-preview-label { font-size: 12px; color: #998880; }
+    .price-preview-total { font-size: 1.3rem; color: #d4a843; font-weight: 500; }
+    .form-submit-row { display: flex; justify-content: flex-end; }
+    .reservation-success { display: none; text-align: center; padding: 2.5rem 1rem; }
+    .reservation-success.visible { display: block; }
+    .success-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .success-title { font-size: 1.4rem; color: #f0e8d8; font-weight: 300; margin-bottom: 0.75rem; }
+    .success-detail { color: #998880; font-size: 14px; line-height: 1.7; }
+    .success-ref { display: inline-block; margin-top: 1rem; background: rgba(212,168,67,0.1); border: 0.5px solid rgba(212,168,67,0.3); color: #d4a843; border-radius: 4px; padding: 6px 16px; font-size: 12px; letter-spacing: 2px; }
+    @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* FOOTER */
+    footer { background: #07070d; border-top: 0.5px solid rgba(255,255,255,0.06); padding: 3rem 2rem; text-align: center; color: #443; font-size: 12px; line-height: 1.8; }
+    footer .footer-logo { display: block; font-size: 14px; color: #d4a843; font-weight: 500; letter-spacing: 2px; margin-bottom: 0.5rem; }
+
+    /* SCROLL PROGRESS BAR */
+    #scroll-bar {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, #7850c8, #d4a843);
+      z-index: 999; transition: width 0.1s linear;
+    }
+
+    /* NAV SCROLLED */
+    nav.scrolled { padding: 0.7rem 2rem; }
+
+    /* BUTTON MICRO-INTERACTIONS */
+    .btn-primary {
+      position: relative; overflow: hidden;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { opacity: 1; box-shadow: 0 0 22px rgba(212,168,67,0.4); transform: translateY(-1px); }
+    .btn-primary:active { transform: scale(0.96) translateY(0); box-shadow: none; }
+    .btn-ghost { transition: border-color 0.2s, color 0.2s, transform 0.15s; }
+    .btn-ghost:hover { transform: translateY(-1px); }
+    .btn-ghost:active { transform: scale(0.96); }
+
+    /* RIPPLE */
+    .ripple {
+      position: absolute; border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      transform: scale(0); animation: ripple-anim 0.55s ease-out forwards;
+      pointer-events: none;
+    }
+    @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
+
+    /* CARD HOVER GLOW */
+    .dest-card {
+      transition: transform 0.35s cubic-bezier(.22,.68,0,1.2), border-color 0.3s, box-shadow 0.35s;
+    }
+    .dest-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(212,168,67,0.4);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(212,168,67,0.08);
+    }
+
+    /* QUIZ STEP ENTRANCE */
+    .quiz-step.active { animation: stepIn 0.4s cubic-bezier(.22,.68,0,1.1) both; }
+    @keyframes stepIn { from { opacity:0; transform:translateX(18px); } to { opacity:1; transform:none; } }
+    .quiz-opt { transition: all 0.18s ease; }
+    .quiz-opt:hover { transform: translateX(4px); }
+    .quiz-opt:active { transform: scale(0.98); }
+
+    /* CHAT BUTTON PULSE */
+    .chatbot-btn::after {
+      content: ''; position: absolute; inset: -3px; border-radius: 50%;
+      border: 2px solid rgba(212,168,67,0.5);
+      animation: chat-pulse 2.2s ease-out infinite;
+    }
+    @keyframes chat-pulse { 0% { transform:scale(1); opacity:0.7; } 100% { transform:scale(1.7); opacity:0; } }
+    .chatbot-btn { position: fixed; bottom: 2rem; right: 2rem; z-index: 200; width: 56px; height: 56px; border-radius: 50%; background: #d4a843; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: 0 4px 24px rgba(212,168,67,0.35); transition: transform 0.2s; }
+
+    /* CHAT WINDOW OPEN ANIMATION */
+    .chat-window { transition: opacity 0.2s, transform 0.25s cubic-bezier(.22,.68,0,1.2); opacity: 0; transform: translateY(12px) scale(0.97); pointer-events: none; }
+    .chat-window.open { opacity: 1; transform: none; pointer-events: auto; }
+
+    /* FORM INPUT FOCUS */
+    .form-group input, .form-group select, .form-group textarea {
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: rgba(212,168,67,0.5);
+      box-shadow: 0 0 0 3px rgba(212,168,67,0.08);
+    }
+
+    /* HERO ANIMATIONS */
+    .hero-badge { animation: fadeInDown 0.7s cubic-bezier(.22,.68,0,1.2) both; }
+    .hero h1 { animation: fadeInUp 0.8s cubic-bezier(.22,.68,0,1.2) 0.15s both; }
+    .hero p { animation: fadeInUp 0.8s cubic-bezier(.22,.68,0,1.2) 0.3s both; }
+    .hero-btns { animation: fadeInUp 0.8s cubic-bezier(.22,.68,0,1.2) 0.45s both; }
+    @keyframes fadeInDown { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:none; } }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:none; } }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .nav-toggle { display: block; }
+      .nav-links.mobile-open { display: flex; flex-direction: column; position: absolute; top: 60px; left: 0; right: 0; background: rgba(10,10,15,0.98); padding: 1rem 2rem; gap: 1rem; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+      .chat-window { width: calc(100vw - 2rem); right: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="scroll-bar"></div>
+<nav id="navbar">
+  <a class="logo" href="#">⏱ TIME<span>TRAVEL</span> AGENCY</a>
+  <div class="nav-links" id="navLinks">
+    <a href="#destinations-bg">Destinations</a>
+    <a href="#quiz-bg">Votre voyage</a>
+    <a href="#reservation-bg">Réserver</a>
+    <a href="#" onclick="openChat(); return false;">Conseiller IA</a>
+  </div>
+  <button class="nav-toggle" onclick="toggleNav()">☰</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <video class="hero-video" id="heroVideo" autoplay muted loop playsinline preload="auto">
+    <source src="videos/202606101934.mp4" type="video/mp4" />
+  </video>
+  <div id="stars"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Agence de voyage temporel de luxe</div>
+    <h1>Explorez l'<span>histoire</span><br>réinventée</h1>
+    <p>Trois destinations uniques à travers le temps. De la Belle Époque parisienne aux forêts du Crétacé, en passant par la Florence de la Renaissance.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('destinations-bg').scrollIntoView({behavior:'smooth'})">Découvrir les destinations</button>
+      <button class="btn-ghost" onclick="document.getElementById('quiz-bg').scrollIntoView({behavior:'smooth'})">Trouver mon voyage</button>
+    </div>
+  </div>
+</section>
+
+<!-- DESTINATIONS -->
+<div id="destinations-bg">
+  <div class="section">
+    <div class="section-label" data-aos="fade-up">Nos destinations</div>
+    <h2 class="section-title" data-aos="fade-up" data-aos-delay="80">Trois époques,<br>trois aventures</h2>
+    <p class="section-sub" data-aos="fade-up" data-aos-delay="160">Chaque destination a été soigneusement sélectionnée pour offrir une immersion totale dans une période fascinante de l'histoire.</p>
+    <div class="destinations-grid">
+
+      <div class="dest-card" onclick="openChat('paris')" data-aos="fade-up" data-aos-delay="100">
+        <div class="dest-img">
+          <img src="images/nbzFM.jpg" alt="Paris 1889" loading="lazy" />
+          <div class="dest-img-overlay"></div>
+          <span class="dest-img-icon">🗼</span>
+          <div class="dest-era">1889</div>
+        </div>
+        <div class="dest-body">
+          <div class="dest-tags"><span class="tag">Belle Époque</span><span class="tag">Art</span><span class="tag">Gastronomie</span></div>
+          <h3>Paris 1889</h3>
+          <p>Assistez à l'inauguration de la Tour Eiffel, flânez dans les grands boulevards et vivez l'Exposition Universelle en direct.</p>
+          <div class="dest-price">À partir de 12 400 € · 7 jours</div>
+        </div>
+      </div>
+
+      <div class="dest-card" onclick="openChat('cretace')" data-aos="fade-up" data-aos-delay="220">
+        <div class="dest-img">
+          <img src="images/bDkCU.jpg" alt="Crétacé" loading="lazy" />
+          <div class="dest-img-overlay"></div>
+          <span class="dest-img-icon">🦕</span>
+          <div class="dest-era">-65 M ans</div>
+        </div>
+        <div class="dest-body">
+          <div class="dest-tags"><span class="tag">Préhistoire</span><span class="tag">Nature</span><span class="tag">Aventure</span></div>
+          <h3>Crétacé</h3>
+          <p>Observez les dinosaures dans leur habitat naturel, explorez des paysages vierges et respirez l'air pur d'un monde sans pollution.</p>
+          <div class="dest-price">À partir de 28 900 € · 5 jours</div>
+        </div>
+      </div>
+
+      <div class="dest-card" onclick="openChat('florence')" data-aos="fade-up" data-aos-delay="340">
+        <div class="dest-img">
+          <img src="images/Y4gp8.jpg" alt="Florence 1504" loading="lazy" />
+          <div class="dest-img-overlay"></div>
+          <span class="dest-img-icon">🎨</span>
+          <div class="dest-era">1504</div>
+        </div>
+        <div class="dest-body">
+          <div class="dest-tags"><span class="tag">Renaissance</span><span class="tag">Art</span><span class="tag">Architecture</span></div>
+          <h3>Florence 1504</h3>
+          <p>Rencontrez Michel-Ange dans son atelier, admirez le David fraîchement achevé et vivez le cœur de la Renaissance italienne.</p>
+          <div class="dest-price">À partir de 18 700 € · 6 jours</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz-bg" style="padding: 6rem 2rem;">
+  <div class="quiz-container">
+    <div class="section-label" style="text-align:center" data-aos="fade-up">Personnalisation IA</div>
+    <h2 class="section-title" style="text-align:center; margin-bottom:0.5rem;" data-aos="fade-up" data-aos-delay="80">Quelle époque vous correspond ?</h2>
+    <p class="section-sub" style="text-align:center; margin: 0 auto 2.5rem; display:block;" data-aos="fade-up" data-aos-delay="160">Répondez à 4 questions et notre IA recommande votre destination idéale.</p>
+
+    <div class="quiz-progress">
+      <div class="quiz-dot done" id="dot0"></div>
+      <div class="quiz-dot" id="dot1"></div>
+      <div class="quiz-dot" id="dot2"></div>
+      <div class="quiz-dot" id="dot3"></div>
+    </div>
+
+    <div class="quiz-step active" id="step0">
+      <p class="quiz-q">1. Quel type d'expérience recherchez-vous ?</p>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="selectOpt(0,'Culturelle et artistique')">Culturelle et artistique</button>
+        <button class="quiz-opt" onclick="selectOpt(0,'Aventure et nature')">Aventure et nature</button>
+        <button class="quiz-opt" onclick="selectOpt(0,'Élégance et raffinement')">Élégance et raffinement</button>
+      </div>
+    </div>
+    <div class="quiz-step" id="step1">
+      <p class="quiz-q">2. Votre période préférée ?</p>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="selectOpt(1,'Histoire moderne XIXe-XXe siècle')">Histoire moderne (XIXe–XXe siècle)</button>
+        <button class="quiz-opt" onclick="selectOpt(1,'Temps anciens et origines')">Temps anciens et origines</button>
+        <button class="quiz-opt" onclick="selectOpt(1,'Renaissance et classicisme')">Renaissance et classicisme</button>
+      </div>
+    </div>
+    <div class="quiz-step" id="step2">
+      <p class="quiz-q">3. Vous préférez :</p>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="selectOpt(2,'L effervescence urbaine')">L'effervescence urbaine</button>
+        <button class="quiz-opt" onclick="selectOpt(2,'La nature sauvage')">La nature sauvage</button>
+        <button class="quiz-opt" onclick="selectOpt(2,'L art et l architecture')">L'art et l'architecture</button>
+      </div>
+    </div>
+    <div class="quiz-step" id="step3">
+      <p class="quiz-q">4. Votre activité idéale :</p>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="selectOpt(3,'Visiter des monuments')">Visiter des monuments</button>
+        <button class="quiz-opt" onclick="selectOpt(3,'Observer la faune')">Observer la faune</button>
+        <button class="quiz-opt" onclick="selectOpt(3,'Explorer des musées et ateliers')">Explorer des musées et ateliers</button>
+      </div>
+    </div>
+    <div class="quiz-step" id="stepResult">
+      <div class="quiz-result" id="quizResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RESERVATION -->
+<div id="reservation-bg">
+  <div class="section">
+    <div class="section-label" data-aos="fade-up">Réservation</div>
+    <h2 class="section-title" data-aos="fade-up" data-aos-delay="80">Préparez votre voyage</h2>
+    <p class="section-sub" data-aos="fade-up" data-aos-delay="160">Remplissez le formulaire ci-dessous et notre équipe vous contactera sous 24h pour finaliser votre voyage temporel.</p>
+
+    <div data-aos="fade-up" data-aos-delay="240">
+      <!-- Formulaire -->
+      <form class="reservation-form" id="reservationForm" novalidate onsubmit="submitReservation(event)">
+
+        <div class="form-row">
+          <div class="form-group" id="fg-prenom">
+            <label for="r-prenom">Prénom</label>
+            <input type="text" id="r-prenom" placeholder="Marie" />
+            <span class="field-error">Prénom requis</span>
+          </div>
+          <div class="form-group" id="fg-nom">
+            <label for="r-nom">Nom</label>
+            <input type="text" id="r-nom" placeholder="Dupont" />
+            <span class="field-error">Nom requis</span>
+          </div>
+        </div>
+
+        <div class="form-group" id="fg-email">
+          <label for="r-email">Email</label>
+          <input type="email" id="r-email" placeholder="marie.dupont@email.com" />
+          <span class="field-error">Email valide requis</span>
+        </div>
+
+        <div class="form-group" id="fg-dest">
+          <label for="r-dest">Destination</label>
+          <select id="r-dest" onchange="updatePricePreview()">
+            <option value="">— Choisissez une époque —</option>
+            <option value="paris">Paris 1889 — Belle Époque</option>
+            <option value="cretace">Crétacé — -65 millions d'années</option>
+            <option value="florence">Florence 1504 — Renaissance</option>
+          </select>
+          <span class="field-error">Veuillez choisir une destination</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" id="fg-date">
+            <label for="r-date">Date de départ souhaitée</label>
+            <input type="date" id="r-date" onchange="updatePricePreview()" />
+            <span class="field-error">Date future requise</span>
+          </div>
+          <div class="form-group" id="fg-voyageurs">
+            <label for="r-voyageurs">Nombre de voyageurs</label>
+            <select id="r-voyageurs" onchange="updatePricePreview()">
+              <option value="1">1 voyageur</option>
+              <option value="2">2 voyageurs</option>
+              <option value="3">3 voyageurs</option>
+              <option value="4">4 voyageurs</option>
+              <option value="5">5 voyageurs ou plus</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="r-message">Demandes particulières (optionnel)</label>
+          <textarea id="r-message" placeholder="Régimes alimentaires, accessibilité, intérêts spécifiques..."></textarea>
+        </div>
+
+        <!-- Récap prix -->
+        <div class="price-preview" id="pricePreview">
+          <div>
+            <div class="price-preview-label" id="previewLabel">Estimation</div>
+            <div style="font-size:12px; color:#665; margin-top:2px">Acompte 30% à la réservation</div>
+          </div>
+          <div class="price-preview-total" id="previewTotal">—</div>
+        </div>
+
+        <div class="form-submit-row">
+          <button type="submit" class="btn-primary">Envoyer ma demande →</button>
+        </div>
+
+      </form>
+
+      <!-- Confirmation -->
+      <div class="reservation-success" id="reservationSuccess">
+        <div class="success-icon">✅</div>
+        <h3 class="success-title">Demande envoyée avec succès !</h3>
+        <p class="success-detail" id="successDetail"></p>
+        <div class="success-ref" id="successRef"></div>
+        <br><br>
+        <button class="btn-ghost" onclick="resetReservation()">Faire une nouvelle réservation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">⏱ TIMETRAVEL AGENCY</span>
+  <p>Projet pédagogique — M1/M2 Digital &amp; IA</p>
+  <p>Stack : HTML · CSS · JS · AOS · GitHub Pages</p>
+  <p style="margin-top:8px; color:#332;">© 2026 TimeTravel Agency — Tous droits réservés</p>
+</footer>
+
+<!-- CHATBOT -->
+<button class="chatbot-btn" onclick="toggleChat()" id="chatBtn" aria-label="Ouvrir le chat conseiller">💬</button>
+<div class="chat-window" id="chatWindow" role="dialog" aria-label="Chat conseiller">
+  <div class="chat-header">
+    <div class="chat-avatar">⏱</div>
+    <div class="chat-header-text">
+      <h4>Chloé — Conseillère temporelle</h4>
+      <p>● En ligne</p>
+    </div>
+    <button class="chat-close" onclick="toggleChat()" aria-label="Fermer">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Posez-moi vos questions..." onkeydown="if(event.key==='Enter') sendMsg()" aria-label="Message" />
+    <button class="chat-send" onclick="sendMsg()">→</button>
+  </div>
+</div>
+
+<script>
+  // ─── Hero video fade-in ───
+  (function() {
+    const v = document.getElementById('heroVideo');
+    if (!v) return;
+    function show() { v.classList.add('loaded'); }
+    v.addEventListener('canplaythrough', show, { once: true });
+    if (v.readyState >= 3) show();
+  })();
+
+  // ─── Scroll progress + nav shrink ───
+  window.addEventListener('scroll', function() {
+    const scrolled = window.scrollY;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    document.getElementById('scroll-bar').style.width = (scrolled / max * 100) + '%';
+    document.getElementById('navbar').classList.toggle('scrolled', scrolled > 60);
+  });
+
+  // ─── Ripple on btn-primary ───
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-primary');
+    if (!btn) return;
+    const r = document.createElement('span');
+    r.className = 'ripple';
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.style.cssText = 'width:' + size + 'px;height:' + size + 'px;left:' + (e.clientX - rect.left - size/2) + 'px;top:' + (e.clientY - rect.top - size/2) + 'px';
+    btn.appendChild(r);
+    setTimeout(function() { r.remove(); }, 600);
+  });
+
+  // ─── Date min ───
+  document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('r-date');
+    if (dateInput) dateInput.min = new Date().toISOString().split('T')[0];
+  });
+
+  // ─── Stars ───
+  (function() {
+    const c = document.getElementById('stars');
+    for (let i = 0; i < 90; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.left = Math.random() * 100 + '%';
+      s.style.top = Math.random() * 100 + '%';
+      s.style.animationDelay = (Math.random() * 4) + 's';
+      s.style.animationDuration = (2 + Math.random() * 3) + 's';
+      c.appendChild(s);
+    }
+  })();
+
+  // ─── Nav mobile ───
+  function toggleNav() {
+    document.getElementById('navLinks').classList.toggle('mobile-open');
+  }
+
+  // ─── Quiz ───
+  const quizAnswers = [];
+  let quizCurrentStep = 0;
+
+  function selectOpt(step, label) {
+    quizAnswers[step] = label;
+    document.querySelectorAll('#step' + step + ' .quiz-opt').forEach(b => b.classList.remove('selected'));
+    event.target.classList.add('selected');
+    setTimeout(() => {
+      document.getElementById('step' + step).classList.remove('active');
+      document.getElementById('dot' + step).classList.add('done');
+      if (step < 3) {
+        quizCurrentStep = step + 1;
+        document.getElementById('step' + quizCurrentStep).classList.add('active');
+        if (quizCurrentStep <= 3) document.getElementById('dot' + quizCurrentStep).classList.add('done');
+      } else {
+        document.getElementById('stepResult').classList.add('active');
+        generateRecommendation();
+      }
+    }, 350);
+  }
+
+  async function generateRecommendation() {
+    const el = document.getElementById('quizResult');
+    el.innerHTML = '<div class="quiz-loading">Notre IA analyse vos préférences...</div>';
+    const answers = quizAnswers.map((a, i) => 'Q' + (i+1) + ': ' + a).join(' | ');
+    const prompt = `Voici les réponses d'un client au quiz de TimeTravel Agency : ${answers}.
+Recommande-lui UNE seule destination parmi : Paris 1889, Crétacé -65M ans, ou Florence 1504.
+Réponds EXACTEMENT avec ce format (rien d'autre) :
+DESTINATION: [nom exact]
+EMOJI: [un emoji]
+EXPLICATION: [2 phrases enthousiastes et personnalisées]`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 250,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const data = await res.json();
+      const text = (data.content?.[0]?.text) || '';
+      const dest = (text.match(/DESTINATION:\s*(.+)/) || [])[1]?.trim() || 'Florence 1504';
+      const emoji = (text.match(/EMOJI:\s*(.+)/) || [])[1]?.trim() || '🎨';
+      const expl = (text.match(/EXPLICATION:\s*([\s\S]+)/) || [])[1]?.trim() || 'Cette destination correspond à votre profil.';
+      el.innerHTML = `
+        <div class="dest-highlight">${emoji}</div>
+        <h3>Votre destination : ${dest}</h3>
+        <p>${expl}</p>
+        <button class="btn-primary" onclick="openChat()" style="margin-bottom:0.75rem">Parler à Chloé →</button><br>
+        <button class="btn-ghost" onclick="restartQuiz()" style="margin-top:0.5rem">Recommencer le quiz</button>
+      `;
+    } catch(e) {
+      el.innerHTML = `<div class="dest-highlight">🎨</div><h3>Florence 1504</h3><p>D'après vos réponses, la Renaissance italienne vous attend !</p><button class="btn-ghost" onclick="restartQuiz()">Recommencer</button>`;
+    }
+  }
+
+  function restartQuiz() {
+    quizAnswers.length = 0;
+    quizCurrentStep = 0;
+    document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.quiz-dot').forEach((d, i) => d.classList.toggle('done', i === 0));
+    document.getElementById('step0').classList.add('active');
+    document.querySelectorAll('.quiz-opt').forEach(b => b.classList.remove('selected'));
+  }
+
+  // ─── Chatbot ───
+  let chatOpen = false;
+  let msgCount = 0;
+
+  const BOT_RESPONSES = {
+    bonjour:    ["Bonjour ! Comment puis-je vous aider aujourd'hui ? 😊", "Bonsoir ! Quelle époque souhaitez-vous explorer ?"],
+    paris:      [
+      "Paris 1889, c'est la magie de la Belle Époque ! 🗼 Vous assisterez en direct à l'inauguration de la Tour Eiffel, flânerez parmi les Impressionnistes et vivrez l'Exposition Universelle. Un voyage inoubliable à partir de 12 400€ pour 7 jours.",
+      "La Belle Époque parisienne vous appelle ! En 1889, Paris est le centre du monde : la Tour Eiffel toute neuve, les cafés de Montmartre, Monet et Renoir en pleine création... À partir de 12 400€ / 7 jours, hébergement inclus."
+    ],
+    cretace:    [
+      "Le Crétacé est notre destination la plus exclusive — et la plus époustouflante ! 🦕 Imaginez observer un T-Rex dans la nature, à 65 millions d'années en arrière. Forêts vierges, air pur, faune préhistorique... À partir de 28 900€ / 5 jours.",
+      "Une expédition au Crétacé, c'est l'aventure ultime ! Vélociraptors, Brachiosaures, paysages d'avant l'humanité... Nos guides experts vous accompagnent à chaque instant. Prix à partir de 28 900€ pour 5 jours immersifs."
+    ],
+    florence:   [
+      "Florence 1504, c'est le cœur battant de la Renaissance ! 🎨 Michel-Ange vient d'achever le David, Léonard de Vinci est présent en ville, les Médicis règnent sur les arts. À partir de 18 700€ / 6 jours.",
+      "La Renaissance italienne vous tend les bras ! En 1504, vous croiserez peut-être Michel-Ange dans son atelier, admirerez le David fraîchement sculpté et vivrez l'effervescence culturelle des Médicis. 18 700€ / 6 jours."
+    ],
+    prix:       [
+      "Nos tarifs : 🗼 Paris 1889 — 12 400€ / 7 jours | 🎨 Florence 1504 — 18 700€ / 6 jours | 🦕 Crétacé — 28 900€ / 5 jours. Tous nos forfaits incluent le transfert temporel, les guides et l'hébergement.",
+      "Voici nos prix tout compris : Paris 1889 à 12 400€ (7j), Florence 1504 à 18 700€ (6j), et notre exclusive expédition au Crétacé à 28 900€ (5j). Un acompte de 30% est demandé à la réservation."
+    ],
+    reservation:[
+      "Pour réserver, choisissez votre destination et vos dates, puis contactez-nous. Un acompte de 30% est demandé. Comptez 3 semaines de préparation avant le départ. Quelle destination vous intéresse le plus ?",
+      "La réservation est simple ! Sélectionnez votre époque, indiquez vos dates et nous gérons tout. Nous vous fournirons un kit de préparation complet incluant costumes d'époque et briefing historique."
+    ],
+    inclus:     [
+      "Tous nos forfaits incluent : ✅ Transfert temporel aller-retour ✅ Guide expert dédié ✅ Costumes et équipements d'époque ✅ Assurance temporelle complète ✅ Hébergement en auberge d'époque reconstituée.",
+      "Nos voyages sont clé en main ! Transfert temporel sécurisé, guide historien spécialisé, tenue d'époque fournie, assurance temporelle et logement inclus. Vous n'avez qu'à profiter de l'expérience."
+    ],
+    securite:   [
+      "La sécurité est notre priorité n°1. Chaque voyageur porte un bracelet de rappel temporel d'urgence, bénéficie d'une assurance complète et est accompagné d'un guide expert. Nos transferts affichent un taux de réussite de 99,97%.",
+      "Vous êtes entre de très bonnes mains ! Nos guides sont formés des années pour chaque époque, chaque dispositif de rappel est testé avant départ, et nos protocoles de sécurité sont les plus rigoureux du secteur."
+    ],
+    merci:      ["Avec plaisir ! 😊 N'hésitez pas si vous avez d'autres questions.", "Je vous en prie ! C'est un plaisir de vous aider à préparer ce voyage extraordinaire."],
+    default:    [
+      "C'est une excellente question ! Souhaitez-vous en savoir plus sur Paris 1889, le Crétacé ou Florence 1504 ?",
+      "Je serais ravie de vous aider davantage. Avez-vous une époque en tête, ou voulez-vous que je vous présente nos trois destinations ?",
+      "Bonne question ! Nos trois destinations sont très différentes — laquelle vous attire : la Belle Époque, l'ère des dinosaures, ou la Renaissance italienne ?",
+      "Pour mieux vous conseiller, dites-moi : préférez-vous l'histoire, l'aventure ou l'art ? Cela m'aidera à vous orienter vers la destination parfaite."
+    ]
+  };
+
+  function pickResponse(key) {
+    const arr = BOT_RESPONSES[key];
+    return arr[msgCount % arr.length];
+  }
+
+  function classify(text) {
+    const t = text.toLowerCase();
+    if (/bonjour|bonsoir|salut|allo|hello|hey/.test(t)) return 'bonjour';
+    if (/paris|belle.poque|tour eiffel|1889|exposition/.test(t)) return 'paris';
+    if (/cr[ée]tac[ée]|dinosaure|t-rex|v[ée]lociraptor|pr[ée]historique|fossile/.test(t)) return 'cretace';
+    if (/florence|renaissance|michel.ange|david|l[ée]onard|toscane|1504|m[ée]dicis/.test(t)) return 'florence';
+    if (/prix|co[ûu]t|tarif|combien|budget/.test(t)) return 'prix';
+    if (/r[ée]server|r[ée]servation|r[ée]server|r[ée]server|book|acompte|date/.test(t)) return 'reservation';
+    if (/inclus|comprend|compris|service|fourni|kit/.test(t)) return 'inclus';
+    if (/s[ée]curité?|danger|risque|assurance/.test(t)) return 'securite';
+    if (/merci|parfait|super|nickel|g[ée]nial/.test(t)) return 'merci';
+    return 'default';
+  }
+
+  function toggleChat() {
+    chatOpen = !chatOpen;
+    document.getElementById('chatWindow').classList.toggle('open', chatOpen);
+    document.getElementById('chatBtn').textContent = chatOpen ? '✕' : '💬';
+    if (chatOpen && document.getElementById('chatMessages').children.length === 0) {
+      addBotMsg("Bonjour ! Je suis Chloé, votre conseillère chez TimeTravel Agency. ✨ Vers quelle époque souhaitez-vous voyager ?");
+    }
+  }
+
+  function openChat(dest) {
+    if (!chatOpen) toggleChat();
+    if (dest) {
+      const labels = { paris: 'Paris 1889', cretace: 'le Crétacé', florence: 'Florence 1504' };
+      setTimeout(() => {
+        document.getElementById('chatInput').value = 'Parlez-moi de ' + labels[dest];
+        sendMsg();
+      }, 300);
+    }
+  }
+
+  function addBotMsg(text) {
+    const el = document.createElement('div');
+    el.className = 'msg bot';
+    el.textContent = text;
+    document.getElementById('chatMessages').appendChild(el);
+    document.getElementById('chatMessages').scrollTop = 9999;
+    return el;
+  }
+
+  function sendMsg() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    const userEl = document.createElement('div');
+    userEl.className = 'msg user';
+    userEl.textContent = text;
+    document.getElementById('chatMessages').appendChild(userEl);
+    document.getElementById('chatMessages').scrollTop = 9999;
+
+    const typing = addBotMsg('...');
+    typing.classList.add('typing');
+    const delay = 600 + Math.random() * 700;
+    setTimeout(() => {
+      typing.remove();
+      const key = classify(text);
+      msgCount++;
+      addBotMsg(pickResponse(key));
+    }, delay);
+  }
+
+  // ─── Réservation ───
+  const DEST_INFO = {
+    paris:    { label: 'Paris 1889 — Belle Époque',         prix: 12400, duree: '7 jours' },
+    cretace:  { label: "Crétacé — -65 millions d'années",   prix: 28900, duree: '5 jours' },
+    florence: { label: 'Florence 1504 — Renaissance',       prix: 18700, duree: '6 jours' }
+  };
+
+  function updatePricePreview() {
+    const dest = document.getElementById('r-dest').value;
+    const qty  = parseInt(document.getElementById('r-voyageurs').value) || 1;
+    const preview = document.getElementById('pricePreview');
+    if (!dest) { preview.classList.remove('visible'); return; }
+    const info  = DEST_INFO[dest];
+    const total = info.prix * qty;
+    document.getElementById('previewLabel').textContent = info.label + ' · ' + info.duree + ' · ' + qty + ' voyageur' + (qty > 1 ? 's' : '');
+    document.getElementById('previewTotal').textContent = total.toLocaleString('fr-FR') + ' €';
+    preview.classList.add('visible');
+  }
+
+  function validateField(id, test) {
+    const fg = document.getElementById('fg-' + id);
+    if (!test) { fg.classList.add('has-error'); return false; }
+    fg.classList.remove('has-error'); return true;
+  }
+
+  function submitReservation(e) {
+    e.preventDefault();
+    const prenom = document.getElementById('r-prenom').value.trim();
+    const nom    = document.getElementById('r-nom').value.trim();
+    const email  = document.getElementById('r-email').value.trim();
+    const dest   = document.getElementById('r-dest').value;
+    const date   = document.getElementById('r-date').value;
+    const today  = new Date().toISOString().split('T')[0];
+
+    let ok = true;
+    ok = validateField('prenom',   prenom.length > 0) && ok;
+    ok = validateField('nom',      nom.length > 0)    && ok;
+    ok = validateField('email',    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) && ok;
+    ok = validateField('dest',     dest !== '')        && ok;
+    ok = validateField('date',     date !== '' && date > today) && ok;
+    if (!ok) return;
+
+    const info = DEST_INFO[dest];
+    const qty  = document.getElementById('r-voyageurs').value;
+    const ref  = 'TTA-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+    const dateFormatted = new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    document.getElementById('reservationForm').style.display = 'none';
+    document.getElementById('successDetail').innerHTML =
+      'Bonjour <strong>' + prenom + ' ' + nom + '</strong>, votre demande pour <strong>' + info.label + '</strong> le ' + dateFormatted +
+      ' (' + qty + ' voyageur' + (qty > 1 ? 's' : '') + ') a bien été reçue.<br>Notre équipe vous contactera à <strong>' + email + '</strong> sous 24h pour confirmer votre voyage.';
+    document.getElementById('successRef').textContent = 'Référence : ' + ref;
+    document.getElementById('reservationSuccess').classList.add('visible');
+  }
+
+  function resetReservation() {
+    document.getElementById('reservationForm').reset();
+    document.getElementById('reservationForm').style.display = '';
+    document.getElementById('reservationSuccess').classList.remove('visible');
+    document.getElementById('pricePreview').classList.remove('visible');
+    document.querySelectorAll('.form-group').forEach(function(fg) { fg.classList.remove('has-error'); });
+  }
+</script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 650, easing: 'ease-out', once: true, offset: 60 });</script>
+</body>
+</html>
